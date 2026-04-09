@@ -2,14 +2,7 @@
   "version": 2,
   "functions": {
     "api/index.py": {
-      "includeFiles": [
-        "api/templates/**",
-        "api/static/**",
-        "templates/**",
-        "static/**",
-        "../templates/**",
-        "../static/**"
-      ]
+      "includeFiles": "templates/**"
     }
   },
   "routes": [
