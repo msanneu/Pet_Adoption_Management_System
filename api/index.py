@@ -49,6 +49,16 @@ print("Template search dirs:", [d for d in template_dirs if os.path.isdir(d)])
 app.secret_key = os.environ.get("SECRET_KEY", "petadopt_secret_2026_key")
 
 
+@app.route('/favicon.ico')
+def favicon_ico():
+    return redirect(url_for('static', filename='images/icon-192.png'))
+
+
+@app.route('/favicon.png')
+def favicon_png():
+    return redirect(url_for('static', filename='images/icon-192.png'))
+
+
 def upload_url(stored_path):
     if not stored_path:
         return ""
