@@ -15,19 +15,37 @@ from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv 
 import psycopg2
 from supabase import create_client
+from jinja2 import ChoiceLoader, FileSystemLoader
 
 load_dotenv() 
 os.environ['AUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
-template_dir = os.path.join(CURRENT_DIR, 'templates')
-static_dir = os.path.join(CURRENT_DIR, 'static')
+ROOT_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '..'))
+
+template_dirs = [
+    os.path.join(CURRENT_DIR, 'templates'),
+    os.path.join(ROOT_DIR, 'templates'),
+]
+static_dirs = [
+    os.path.join(CURRENT_DIR, 'static'),
+    os.path.join(ROOT_DIR, 'static'),
+]
+
+template_dir = next((d for d in template_dirs if os.path.isdir(d)), template_dirs[0])
+static_dir = next((d for d in static_dirs if os.path.isdir(d)), static_dirs[0])
 
 app = Flask(
     __name__,
     template_folder=template_dir,
     static_folder=static_dir
 )
+
+# Search both api/ and root template folders in serverless deployments.
+app.jinja_loader = ChoiceLoader([
+    FileSystemLoader(d) for d in template_dirs if os.path.isdir(d)
+])
+print("Template search dirs:", [d for d in template_dirs if os.path.isdir(d)])
 app.secret_key = os.environ.get("SECRET_KEY", "petadopt_secret_2026_key")
 
 
