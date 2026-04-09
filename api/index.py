@@ -15,16 +15,33 @@ from authlib.integrations.flask_client import OAuth
 from dotenv import load_dotenv 
 import psycopg2
 from supabase import create_client
+from jinja2 import ChoiceLoader, FileSystemLoader
 
 load_dotenv() 
 os.environ['AUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+API_DIR = os.path.abspath(os.path.dirname(__file__))
+
+template_root = os.path.join(BASE_DIR, 'templates')
+template_api = os.path.join(API_DIR, 'templates')
+static_root = os.path.join(BASE_DIR, 'static')
+static_api = os.path.join(API_DIR, 'static')
+
+selected_template_dir = template_root if os.path.isdir(template_root) else template_api
+selected_static_dir = static_root if os.path.isdir(static_root) else static_api
+
 app = Flask(
     __name__,
-    template_folder=os.path.join(BASE_DIR, 'templates'),
-    static_folder=os.path.join(BASE_DIR, 'static')
+    template_folder=selected_template_dir,
+    static_folder=selected_static_dir
 )
+
+# In serverless bundles, templates might be packaged under /api/templates.
+app.jinja_loader = ChoiceLoader([
+    FileSystemLoader(template_root),
+    FileSystemLoader(template_api),
+])
 app.secret_key = os.environ.get("SECRET_KEY", "petadopt_secret_2026_key")
 
 
@@ -789,7 +806,7 @@ def google_login():
 def google_authorize():
     token = google.authorize_access_token()
     resp = google.get('userinfo')
-    user_info = resp.json()
+    user_info = resp.gjson()
     email = user_info['email']
     name = user_info['name']
 
