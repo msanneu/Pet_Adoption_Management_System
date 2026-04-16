@@ -304,49 +304,51 @@ with app.app_context():
 
 @app.route('/')
 def index():
-    pets = Pet.query.filter_by(status="Available").all()
-    try:
-        return render_template('public/index.html', pets=pets)
-    except TemplateNotFound as exc:
-        print(f"Template missing at runtime: {exc}. Search dirs: {template_dirs}")
+    return render_template('index.html', pets=Pet.query.filter_by(status="Available").all())
 
-    # Fallback: render homepage template directly from disk if loader misses it.
-    for base in template_dirs:
-        candidate = os.path.join(base, 'public', 'index.html')
-        if os.path.exists(candidate):
-            try:
-                with open(candidate, 'r', encoding='utf-8') as f:
-                    source = f.read()
-                return render_template_string(source, pets=pets)
-            except Exception as inner_exc:
-                print(f"Direct template render failed for {candidate}: {inner_exc}")
+    # pets = Pet.query.filter_by(status="Available").all()
+    # try:
+    #     return render_template('public/index.html', pets=pets)
+    # except TemplateNotFound as exc:
+    #     print(f"Template missing at runtime: {exc}. Search dirs: {template_dirs}")
 
-    return render_template_string(
-        """
-        <!doctype html>
-        <html lang="en">
-        <head>
-            <meta charset="utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <title>PetAdopt</title>
-            <style>
-                body { font-family: Arial, sans-serif; margin: 40px; color: #1f2937; }
-                .card { max-width: 760px; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; }
-                a { color: #0369a1; text-decoration: none; }
-            </style>
-        </head>
-        <body>
-            <div class="card">
-                <h1>PetAdopt is running</h1>
-                <p>Homepage template is missing in the deployment package.</p>
-                <p>Available pets in database: <strong>{{ pet_count }}</strong></p>
-                <p><a href="/admin/login">Go to Admin Login</a></p>
-            </div>
-        </body>
-        </html>
-        """,
-        pet_count=len(pets),
-    )
+    # # Fallback: render homepage template directly from disk if loader misses it.
+    # for base in template_dirs:
+    #     candidate = os.path.join(base, 'public', 'index.html')
+    #     if os.path.exists(candidate):
+    #         try:
+    #             with open(candidate, 'r', encoding='utf-8') as f:
+    #                 source = f.read()
+    #             return render_template_string(source, pets=pets)
+    #         except Exception as inner_exc:
+    #             print(f"Direct template render failed for {candidate}: {inner_exc}")
+
+    # return render_template_string(
+    #     """
+    #     <!doctype html>
+    #     <html lang="en">
+    #     <head>
+    #         <meta charset="utf-8" />
+    #         <meta name="viewport" content="width=device-width, initial-scale=1" />
+    #         <title>PetAdopt</title>
+    #         <style>
+    #             body { font-family: Arial, sans-serif; margin: 40px; color: #1f2937; }
+    #             .card { max-width: 760px; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; }
+    #             a { color: #0369a1; text-decoration: none; }
+    #         </style>
+    #     </head>
+    #     <body>
+    #         <div class="card">
+    #             <h1>PetAdopt is running</h1>
+    #             <p>Homepage template is missing in the deployment package.</p>
+    #             <p>Available pets in database: <strong>{{ pet_count }}</strong></p>
+    #             <p><a href="/admin/login">Go to Admin Login</a></p>
+    #         </div>
+    #     </body>
+    #     </html>
+    #     """,
+    #     pet_count=len(pets),
+    # )
 
 @app.route('/adopt/<int:pet_id>', methods=['GET', 'POST'])
 def adopt(pet_id):
