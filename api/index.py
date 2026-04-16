@@ -304,7 +304,7 @@ with app.app_context():
 
 @app.route('/')
 def index():
-    return render_template('index.html', pets=Pet.query.filter_by(status="Available").all())
+    return render_template('public/index.html', pets=Pet.query.filter_by(status="Available").all())
 
 
 @app.route('/adopt/<int:pet_id>', methods=['GET', 'POST'])
