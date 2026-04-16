@@ -306,26 +306,10 @@ with app.app_context():
 @app.route('/index.html')
 def index():
     pets = Pet.query.filter_by(status="Available").all()
-
-    # Prefer explicit file render so homepage works even when Jinja loader paths differ.
-    explicit_candidates = [
-        os.path.join(ROOT_DIR, 'templates', 'public', 'index.html'),
-        os.path.join(CURRENT_DIR, 'templates', 'public', 'index.html'),
-    ]
-    for candidate in explicit_candidates:
-        if os.path.exists(candidate):
-            try:
-                with open(candidate, 'r', encoding='utf-8') as f:
-                    source = f.read()
-                return render_template_string(source, pets=pets)
-            except Exception as exc:
-                print(f"Direct template render failed for {candidate}: {exc}")
-
     try:
+        return render_template('public/homepage.html', pets=pets)
+    except TemplateNotFound:
         return render_template('public/index.html', pets=pets)
-    except TemplateNotFound as exc:
-        print(f"Template missing at runtime: {exc}. Search dirs: {template_dirs}")
-    return "Homepage template missing: templates/public/index.html", 500
 
 @app.route('/adopt/<int:pet_id>', methods=['GET', 'POST'])
 def adopt(pet_id):
