@@ -303,13 +303,9 @@ with app.app_context():
         db.session.commit()
 
 @app.route('/')
-@app.route('/index.html')
 def index():
     pets = Pet.query.filter_by(status="Available").all()
-    try:
-        return render_template('public/homepage.html', pets=pets)
-    except TemplateNotFound:
-        return render_template('public/index.html', pets=pets)
+    return render_template('public/homepage.html', pets=pets)
 
 @app.route('/adopt/<int:pet_id>', methods=['GET', 'POST'])
 def adopt(pet_id):
