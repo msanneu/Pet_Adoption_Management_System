@@ -303,7 +303,6 @@ with app.app_context():
         db.session.commit()
 
 @app.route('/')
-@app.route('/homepage')
 def index():
     pets = Pet.query.filter_by(status="Available").all()
     try:
