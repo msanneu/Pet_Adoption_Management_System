@@ -252,12 +252,10 @@ def log_action(action_text):
         db.session.commit()
 
 def save_upload(file):
-    if not file or file.filename == "": return None, "No file selected."
+    if not file or file.filename == "":
+        return None, "No file selected."
     filename = secure_filename(file.filename)
     unique_name = f"{uuid4().hex}_{filename}"
-    file_content = None
-
-    # Prefer Supabase when configured; if upload fails, fall back to local storage.
     if supabase:
         try:
             file_content = file.read()
@@ -265,18 +263,10 @@ def save_upload(file):
             public_url = supabase.storage.from_(supabase_bucket).get_public_url(unique_name)
             return public_url, None
         except Exception as exc:
-            print(f"Supabase upload failed ({exc}). Using local upload fallback.")
-
-    try:
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
-        if file_content is not None:
-            with open(file_path, 'wb') as out:
-                out.write(file_content)
-        else:
-            file.save(file_path)
-        return unique_name, None
-    except Exception as exc:
-        return None, f"Failed to save upload locally: {exc}"
+            print(f"Supabase upload failed ({exc}).")
+            return None, f"Failed to upload to Supabase: {exc}"
+    else:
+        return None, "Supabase client not initialized. File uploads are not supported in this environment."
 
 def is_authentic_email(email):
     return re.fullmatch(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email or "")
