@@ -303,6 +303,7 @@ with app.app_context():
         db.session.commit()
 
 @app.route('/')
+@app.route('/index.html')
 def index():
     # return render_template('index.html', pets=Pet.query.filter_by(status="Available").all())
 
