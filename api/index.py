@@ -305,6 +305,17 @@ with app.app_context():
 @app.route('/')
 def index():
     pets = Pet.query.filter_by(status="Available").all()
+
+    # Prefer the workspace landing template explicitly for the homepage route.
+    root_public_index = os.path.join(ROOT_DIR, 'templates', 'public', 'index.html')
+    if os.path.exists(root_public_index):
+        try:
+            with open(root_public_index, 'r', encoding='utf-8') as f:
+                source = f.read()
+            return render_template_string(source, pets=pets)
+        except Exception as exc:
+            print(f"Direct root template render failed for {root_public_index}: {exc}")
+
     try:
         return render_template('public/index.html', pets=pets)
     except TemplateNotFound as exc:
