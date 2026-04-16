@@ -302,7 +302,9 @@ with app.app_context():
         ))
         db.session.commit()
 
-
+@app.route('/')
+def home():
+    return render_template('homepage.html')
 
 @app.route('/adopt/<int:pet_id>', methods=['GET', 'POST'])
 def adopt(pet_id):
