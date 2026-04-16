@@ -306,7 +306,7 @@ with app.app_context():
 def index():
     pets = Pet.query.filter_by(status="Available").all()
     try:
-        return render_template('public/homepage.html', pets=pets)
+        return render_template('public/homepage.html', pets=Pet)
     except TemplateNotFound:
         pass
 
@@ -319,7 +319,7 @@ def index():
         if os.path.exists(candidate):
             try:
                 with open(candidate, 'r', encoding='utf-8') as f:
-                    return render_template_string(f.read(), pets=pets)
+                    return render_template_string(f.read(), pets=Pet)
             except Exception as exc:
                 print(f"Failed direct render for {candidate}: {exc}")
 
