@@ -305,15 +305,17 @@ with app.app_context():
 @app.route('/')
 def index():
     pets = Pet.query.filter_by(status="Available").all()
-    try:
-        return render_template('public/homepage.html', pets=pets)
-    except TemplateNotFound as exc:
-        print(f"Homepage template not found via loader: {exc}. Trying direct file render.")
+    for template_name in ('public/homepage.html', 'public/index.html'):
+        try:
+            return render_template(template_name, pets=pets)
+        except TemplateNotFound:
+            continue
 
-    candidates = [
-        os.path.join(ROOT_DIR, 'templates', 'public', 'homepage.html'),
-        os.path.join(CURRENT_DIR, 'templates', 'public', 'homepage.html'),
-    ]
+    candidates = []
+    for base in (ROOT_DIR, CURRENT_DIR):
+        for filename in ('homepage.html', 'index.html'):
+            candidates.append(os.path.join(base, 'templates', 'public', filename))
+
     for candidate in candidates:
         if os.path.exists(candidate):
             try:
