@@ -303,18 +303,18 @@ with app.app_context():
         db.session.commit()
 
 @app.route('/')
+@app.route('/homepage')
 def index():
     pets = Pet.query.filter_by(status="Available").all()
-    for template_name in ('public/homepage.html', 'public/index.html'):
-        try:
-            return render_template(template_name, pets=pets)
-        except TemplateNotFound:
-            continue
+    try:
+        return render_template('public/homepage.html', pets=pets)
+    except TemplateNotFound:
+        pass
 
-    candidates = []
-    for base in (ROOT_DIR, CURRENT_DIR):
-        for filename in ('homepage.html', 'index.html'):
-            candidates.append(os.path.join(base, 'templates', 'public', filename))
+    candidates = [
+        os.path.join(ROOT_DIR, 'templates', 'public', 'homepage.html'),
+        os.path.join(CURRENT_DIR, 'templates', 'public', 'homepage.html'),
+    ]
 
     for candidate in candidates:
         if os.path.exists(candidate):
