@@ -305,25 +305,8 @@ with app.app_context():
 @app.route('/')
 def index():
     pets = Pet.query.filter_by(status="Available").all()
-    try:
-        return render_template('public/homepage.html', pets=Pet)
-    except TemplateNotFound:
-        pass
+    return render_template('public/homepage.html', pets=pets)
 
-    candidates = [
-        os.path.join(ROOT_DIR, 'templates', 'public', 'homepage.html'),
-        os.path.join(CURRENT_DIR, 'templates', 'public', 'homepage.html'),
-    ]
-
-    for candidate in candidates:
-        if os.path.exists(candidate):
-            try:
-                with open(candidate, 'r', encoding='utf-8') as f:
-                    return render_template_string(f.read(), pets=Pet)
-            except Exception as exc:
-                print(f"Failed direct render for {candidate}: {exc}")
-
-    return "Homepage template missing in deployment: public/homepage.html", 200
 
 @app.route('/adopt/<int:pet_id>', methods=['GET', 'POST'])
 def adopt(pet_id):
