@@ -821,7 +821,7 @@ def google_login():
 def google_authorize():
     token = google.authorize_access_token()
     resp = google.get('userinfo')
-    user_info = resp.gjson()
+    user_info = resp.json()
     email = user_info['email']
     name = user_info['name']
 
