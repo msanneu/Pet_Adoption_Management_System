@@ -69,7 +69,7 @@ def upload_url(stored_path):
 
 
 supabase_url = os.environ.get("SUPABASE_URL")
-supabase_key = os.environ.get("SUPABASE_KEY")
+supabase_key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_KEY")
 supabase_bucket = os.environ.get("SUPABASE_STORAGE_BUCKET", "pet-assets")
 supabase = None
 if supabase_url and supabase_key:
