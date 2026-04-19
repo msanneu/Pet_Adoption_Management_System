@@ -396,7 +396,7 @@ def adopt(pet_id):
             flash(f"Application for {pet.name} submitted!", "success")
             return redirect(url_for('adopter_dashboard'))
 
-        return render_template('public/adopt.html', pet=pet)
+        return render_template('adopt.html', pet=pet)
     except Exception as exc:
         print(f"Adopt route failed for pet_id={pet_id}: {exc}")
         traceback.print_exc()
