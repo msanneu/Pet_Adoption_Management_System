@@ -878,7 +878,7 @@ def view_cart():
         return redirect(url_for('index'))
     
     selected_pets = Pet.query.filter(Pet.id.in_(session['cart'])).all()
-    return render_template('public/cart.html', pets=selected_pets)
+    return render_template('cart.html', pets=selected_pets)
 
 @app.route('/profile', methods=['GET', 'POST'])
 def adopter_profile():
