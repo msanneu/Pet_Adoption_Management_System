@@ -460,7 +460,7 @@
 
     .hover-row td a { position: relative; z-index: 1; pointer-events: auto !important; }
 
-    /* 3. UPDATED MOBILE RESPONSIVE LOGIC */
+   /* 3. UPDATED MOBILE RESPONSIVE LOGIC */
     @media (max-width: 991.98px) {
         .modal-fullscreen-sm-down { margin: 0 !important; max-width: 100% !important; }
         
@@ -470,20 +470,23 @@
             display: flex !important; 
             flex-direction: column !important; 
             border: none;
+            /* Ensures no "ghost" elements from layout block clicks */
+            pointer-events: auto !important; 
         }
         
         .modal-header {
             background: #f8f9fa !important;
             border-bottom: 1px solid #dee2e6 !important;
             flex-shrink: 0 !important;
-            padding: 1.25rem !important;
+            padding: 1rem 1.25rem !important;
             z-index: 10;
         }
 
         .modal-body { 
             flex: 1 1 auto !important; 
             overflow-y: auto !important; 
-            padding: 1.5rem !important; 
+            padding: 1.25rem !important; 
+            background-color: #ffffff !important;
             -webkit-overflow-scrolling: touch;
         }
         
@@ -492,14 +495,21 @@
             background: #fff; 
             border-top: 1px solid #eee; 
             padding: 15px !important;
+            /* Keeps buttons visible at the bottom of the screen */
+            position: sticky;
+            bottom: 0;
         }
 
-        /* Responsive Column Stacking */
-        .col-4, .col-6, .col-md-6, .col-md-4 {
+        /* REFINED: Only stack large columns, let small ones (col-4) stay grid-like */
+        .col-md-6, .col-md-12 {
             width: 100% !important;
             flex: 0 0 100% !important;
             max-width: 100% !important;
-            margin-bottom: 12px;
+        }
+        
+        /* Ensure the sidebar doesn't sit on top of the clickable area */
+        #sidebar:not(.active) {
+            display: none !important;
         }
     }
 </style>
