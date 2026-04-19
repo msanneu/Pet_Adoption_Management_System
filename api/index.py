@@ -59,13 +59,15 @@ def favicon_png():
     return redirect(url_for('static', filename='images/icon-192.png'))
 
 
+
 def upload_url(stored_path):
     if not stored_path:
-        return ""
+        return "https://via.placeholder.com/300"  # fallback image
     value = str(stored_path).strip()
     if value.startswith("http://") or value.startswith("https://"):
         return value
-    return url_for('static', filename='uploads/' + value)
+    # Always return a Supabase public URL for legacy filenames
+    return supabase.storage.from_(supabase_bucket).get_public_url(value) if supabase else "https://via.placeholder.com/300"
 
 
 supabase_url = os.environ.get("SUPABASE_URL")
@@ -106,13 +108,7 @@ db = SQLAlchemy(app)
 app.jinja_env.globals['upload_url'] = upload_url
 
 
-def local_upload_path(stored_path):
-    if not stored_path:
-        return None
-    value = str(stored_path).strip()
-    if value.startswith("http://") or value.startswith("https://"):
-        return None
-    return os.path.join(app.config['UPLOAD_FOLDER'], value)
+
 
 # 3. Now the functions can use the 'supabase' variable safely
 def save_upload(file):
@@ -137,9 +133,7 @@ google = oauth.register(
     client_kwargs={'scope': 'openid email profile'},
 )
 
-upload_dir = os.path.join(app.static_folder, 'uploads')
-os.makedirs(upload_dir, exist_ok=True)
-app.config['UPLOAD_FOLDER'] = upload_dir
+
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "gif", "webp"}
 
@@ -507,12 +501,6 @@ def edit_pet(pet_id):
         if file and file.filename != '':
             new_img, err = save_upload(file)
             if not err:
-                if pet.photo: 
-                    try:
-                        old_path = local_upload_path(pet.photo)
-                        if old_path and os.path.exists(old_path):
-                            os.remove(old_path)
-                    except: pass
                 pet.photo = new_img
         db.session.commit()
         log_action(f"Updated profile for: {pet.name}")
@@ -526,12 +514,7 @@ def delete_pet(pet_id):
     if not get_current_admin(): return redirect(url_for('admin_login'))
     pet = Pet.query.get_or_404(pet_id)
     pet_name = pet.name
-    if pet.photo:
-        try:
-            old_path = local_upload_path(pet.photo)
-            if old_path and os.path.exists(old_path):
-                os.remove(old_path)
-        except: pass
+    # No local file deletion needed; all assets are on Supabase
     db.session.delete(pet)
     db.session.commit()
     log_action(f"Permanently removed pet: {pet_name}")
