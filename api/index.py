@@ -1,6 +1,7 @@
 import os
 import re
 import csv
+import traceback
 from io import StringIO
 from flask import Response
 from datetime import datetime, timedelta
@@ -66,8 +67,14 @@ def upload_url(stored_path):
     value = str(stored_path).strip()
     if value.startswith("http://") or value.startswith("https://"):
         return value
-    # Always return a Supabase public URL for legacy filenames
-    return supabase.storage.from_(supabase_bucket).get_public_url(value) if supabase else "https://via.placeholder.com/300"
+    if not supabase:
+        return "https://via.placeholder.com/300"
+    try:
+        return supabase.storage.from_(supabase_bucket).get_public_url(value)
+    except Exception as exc:
+        print(f"upload_url error: {exc}")
+        traceback.print_exc()
+        return "https://via.placeholder.com/300"
 
 
 supabase_url = os.environ.get("SUPABASE_URL")
@@ -293,88 +300,93 @@ def index():
 
 @app.route('/adopt/<int:pet_id>', methods=['GET', 'POST'])
 def adopt(pet_id):
-    if not session.get('user_id'):
-        flash("Please log in to apply.", "info")
-        return redirect(url_for('adopter_login', next=url_for('adopt', pet_id=pet_id)))
+    try:
+        if not session.get('user_id'):
+            flash("Please log in to apply.", "info")
+            return redirect(url_for('adopter_login', next=url_for('adopt', pet_id=pet_id)))
 
-    pet = Pet.query.get_or_404(pet_id)
-    
-    if request.method == 'POST':
-        file_id = request.files.get('id_proof')
-        filename_id, err_id = save_upload(file_id)
-        if err_id: 
-            flash(err_id, "danger")
-            return redirect(request.url)
-
-        file_home = request.files.get('home_picture')
-        filename_home, err_home = save_upload(file_home)
-        if err_home:
-            flash(err_home, "danger")
-            return redirect(request.url)
-
-        def get_answer(field_name, trigger_val='Other'):
-            val = request.form.get(field_name)
-            if val == trigger_val:
-                return request.form.get(f"{field_name}_other")
-            elif field_name == 'surrendered_pet' and val == 'Yes':
-                explanation = request.form.get(f"{field_name}_other")
-                return f"Yes: {explanation}"
-            return val
-
-        adopter_name = request.form.get('name')
-        adopter_email = request.form.get('email')
-
-        new_app = AdoptionApplication(
-            user_id=session.get('user_id'),
-            adopter_name=adopter_name,
-            email=adopter_email,
-            id_proof=filename_id,
-            home_picture=filename_home,
-            status="Pending",
-            phone=request.form.get('phone'),
-            occupation=request.form.get('occupation'),
-            q_home_type=get_answer('q_home_type'),
-            q_yard_access=get_answer('q_yard_access'),
-            household_size=get_answer('household_size'),
-            q_hours_alone=request.form.get('q_hours_alone'),
-            other_pets=get_answer('other_pets'),
-            financial_readiness=get_answer('financial_readiness'),
-            q_pet_experience=request.form.get('q_pet_experience')
-        )
+        pet = Pet.query.get_or_404(pet_id)
         
-        db.session.add(new_app)
-        db.session.flush()
+        if request.method == 'POST':
+            file_id = request.files.get('id_proof')
+            filename_id, err_id = save_upload(file_id)
+            if err_id: 
+                flash(err_id, "danger")
+                return redirect(request.url)
 
-        item = ApplicationItem(application_id=new_app.id, pet_id=pet.id)
-        db.session.add(item)
-        db.session.commit()
+            file_home = request.files.get('home_picture')
+            filename_home, err_home = save_upload(file_home)
+            if err_home:
+                flash(err_home, "danger")
+                return redirect(request.url)
 
-        if request.form.get('send_email_copy') == 'on':
-            try:
-                msg = Message("Copy of Your PetAdopt Application", recipients=[adopter_email])
-                msg.html = f"""
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; background-color: #fdfdfb;">
-                    <h2 style="color: #1a2a3a; border-bottom: 2px solid #c5a059; padding-bottom: 10px;">Application Received!</h2>
-                    <p>Hi <strong>{adopter_name}</strong>,</p>
-                    <p>Thank you for submitting your application to adopt <strong>{pet.name}</strong>. Here is a copy of your submitted questionnaire:</p>
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
-                        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Home Type:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{new_app.q_home_type} ({new_app.q_yard_access})</td></tr>
-                        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Household Size:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{new_app.household_size}</td></tr>
-                        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Other Pets:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{new_app.other_pets}</td></tr>
-                        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Hours Alone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{new_app.q_hours_alone}</td></tr>
-                        <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Experience:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{new_app.q_pet_experience}</td></tr>
-                    </table>
-                    <p style="margin-top: 30px; font-size: 14px; color: #666;">You can view your full responses anytime on your Adopter Dashboard.</p>
-                </div>
-                """
-                mail.send(msg)
-            except Exception as e:
-                print(f"Failed to send application receipt email: {e}")
+            def get_answer(field_name, trigger_val='Other'):
+                val = request.form.get(field_name)
+                if val == trigger_val:
+                    return request.form.get(f"{field_name}_other")
+                elif field_name == 'surrendered_pet' and val == 'Yes':
+                    explanation = request.form.get(f"{field_name}_other")
+                    return f"Yes: {explanation}"
+                return val
 
-        flash(f"Application for {pet.name} submitted!", "success")
-        return redirect(url_for('adopter_dashboard'))
+            adopter_name = request.form.get('name')
+            adopter_email = request.form.get('email')
 
-    return render_template('public/adopt.html', pet=pet)
+            new_app = AdoptionApplication(
+                user_id=session.get('user_id'),
+                adopter_name=adopter_name,
+                email=adopter_email,
+                id_proof=filename_id,
+                home_picture=filename_home,
+                status="Pending",
+                phone=request.form.get('phone'),
+                occupation=request.form.get('occupation'),
+                q_home_type=get_answer('q_home_type'),
+                q_yard_access=get_answer('q_yard_access'),
+                household_size=get_answer('household_size'),
+                q_hours_alone=request.form.get('q_hours_alone'),
+                other_pets=get_answer('other_pets'),
+                financial_readiness=get_answer('financial_readiness'),
+                q_pet_experience=request.form.get('q_pet_experience')
+            )
+            
+            db.session.add(new_app)
+            db.session.flush()
+
+            item = ApplicationItem(application_id=new_app.id, pet_id=pet.id)
+            db.session.add(item)
+            db.session.commit()
+
+            if request.form.get('send_email_copy') == 'on':
+                try:
+                    msg = Message("Copy of Your PetAdopt Application", recipients=[adopter_email])
+                    msg.html = f"""
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; background-color: #fdfdfb;">
+                        <h2 style="color: #1a2a3a; border-bottom: 2px solid #c5a059; padding-bottom: 10px;">Application Received!</h2>
+                        <p>Hi <strong>{adopter_name}</strong>,</p>
+                        <p>Thank you for submitting your application to adopt <strong>{pet.name}</strong>. Here is a copy of your submitted questionnaire:</p>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px;">
+                            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Home Type:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{new_app.q_home_type} ({new_app.q_yard_access})</td></tr>
+                            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Household Size:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{new_app.household_size}</td></tr>
+                            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Other Pets:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{new_app.other_pets}</td></tr>
+                            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Hours Alone:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{new_app.q_hours_alone}</td></tr>
+                            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Experience:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">{new_app.q_pet_experience}</td></tr>
+                        </table>
+                        <p style="margin-top: 30px; font-size: 14px; color: #666;">You can view your full responses anytime on your Adopter Dashboard.</p>
+                    </div>
+                    """
+                    mail.send(msg)
+                except Exception as e:
+                    print(f"Failed to send application receipt email: {e}")
+
+            flash(f"Application for {pet.name} submitted!", "success")
+            return redirect(url_for('adopter_dashboard'))
+
+        return render_template('public/adopt.html', pet=pet)
+    except Exception as exc:
+        print(f"Adopt route failed for pet_id={pet_id}: {exc}")
+        traceback.print_exc()
+        raise
 
 @app.route('/dashboard')
 def adopter_dashboard():
