@@ -481,6 +481,27 @@
         margin-top: 15px;
     }
 }
+    /* Forces modal content to be the top-most clickable layer */
+.modal { 
+    z-index: 3000 !important; 
+}
+.modal-backdrop { 
+    z-index: 2999 !important; 
+}
+
+/* Fixes the "Darkened but unclickable" issue on mobile */
+@media (max-width: 767px) {
+    .modal-dialog {
+        margin: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+    }
+    .modal-content {
+        min-height: 100vh;
+        border-radius: 0 !important;
+    }
+}
 
 </style>
 
