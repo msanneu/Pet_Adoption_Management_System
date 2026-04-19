@@ -476,24 +476,6 @@
     }
 }
 
-    /* Additional mobile styles */
-    @media (max-width: 991.98px) {
-        /* 1. Reset layout for mobile stack */
-        body, .admin-wrapper, .main-container { 
-            display: block !important; 
-        }
-
-        /* 2. Modified Sidebar Logic */
-        .sidebar, #sidebar {
-            width: 100% !important;
-            height: auto !important;
-            position: fixed !important; /* Fixed so it overlays content */
-            top: 60px; /* Adjust based on your navbar height */
-            left: 0;
-            z-index: 1000;
-            background: white;
-            display: none; /* Hidden by default on mobile */
-        }
 
         /* 3. SHOW sidebar when 'active' class is present */
         .sidebar.active, #sidebar.active {
