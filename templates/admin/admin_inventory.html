@@ -414,87 +414,93 @@
 {% endfor %}
 
 <style>
-    :root { --primary-navy: #1a2a3a; --accent-gold: #c5a059; }
-    .text-navy { color: var(--primary-navy) !important; }
-    .bg-navy { background-color: var(--primary-navy) !important; }
-    .ls-1 { letter-spacing: 1px; }
-    .small-label { font-size: 0.6rem; opacity: 0.5; display: block; margin-bottom: 2px; }
-    .form-label-sm { font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; display: block; }
+    :root { 
+        --primary-navy: #1a2a3a; 
+        --accent-gold: #c5a059; 
+    }
+    
+    /* 1. LAYER & VISIBILITY FIXES */
+    /* Forces the modal above the blue mobile navbar */
+    .modal { z-index: 3000 !important; }
+    .modal-backdrop { z-index: 2999 !important; }
 
-    /* Custom Buttons */
+    /* Ensures background is solid so fields aren't "transparent" */
+    .modal-body { 
+        background-color: #ffffff !important; 
+        color: #212529 !important; 
+        /* Pushes content down so the fixed header doesn't hide the "Pet Name" field */
+        padding-top: 2rem !important; 
+    }
+
+    /* Fixes labels for clinical background and photo sections */
+    .form-label-sm { 
+        font-size: 0.85rem; 
+        font-weight: 700; 
+        margin-bottom: 5px; 
+        display: block; 
+        color: var(--primary-navy) !important;
+        opacity: 1 !important;
+    }
+
+    .small-label { font-size: 0.6rem; opacity: 0.6; display: block; margin-bottom: 2px; color: #666; }
+
+    /* 2. ORIGINAL BUTTON & UI STYLES */
     .btn-register-main { background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%); color: white; border: none; padding: 12px 28px; border-radius: 12px; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 15px rgba(26, 42, 58, 0.2); }
     .btn-register-main:hover { background: linear-gradient(135deg, #c5a059 0%, #d4af37 100%); transform: scale(1.05) translateY(-2px); color: #1a2a3a; }
     
     .btn-search-terminal { background-color: var(--primary-navy); color: #ffffff !important; border: none; font-weight: 700; letter-spacing: 2px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; }
-    .btn-search-terminal:hover { background-color: #2c3e50; color: var(--accent-gold) !important; }
-
+    
     .btn-commit-sanctuary { background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 100%); color: #ffffff !important; border: none; border-radius: 8px; padding: 12px 32px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
     .btn-commit-sanctuary:hover { background: linear-gradient(135deg, #c5a059 0%, #d4af37 100%); color: #1a2a3a !important; transform: translateY(-2px); }
 
     .btn-cancel-sanctuary { background-color: transparent; color: #95a5a6; border: 1px solid #dfe6e9; border-radius: 8px; padding: 10px 24px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; transition: 0.3s; }
 
-    /* Horizontal Swiping Container */
-    .nav-container::-webkit-scrollbar { display: none; }
     .nav-tabs .nav-link { border: none; color: #666; font-weight: 600; padding: 10px 20px; border-radius: 8px; }
     .nav-tabs .nav-link.active { background: var(--primary-navy) !important; color: white !important; }
 
-    .hover-row td a {
-    position: relative;
-    z-index: 10;
-    pointer-events: auto;
-}
+    .hover-row td a { position: relative; z-index: 1; pointer-events: auto !important; }
 
-
-    /* Modal Height and Fullscreen on Mobile */
-    @media (max-width: 576px) {
-        
-        .modal-fullscreen-sm-down .modal-dialog {
-            display: flex;
-            align-items: center;
-            min-height: 100vh;
-            justify-content: center;
-        }
-        .modal-fullscreen-sm-down .modal-content {
-            border-radius: 0;
-            /* Remove height: 100% to prevent off-screen issues */
-            min-height: 80vh;
-            max-height: 100vh;
-        }
-        
-        .modal-content {
-            pointer-events: auto !important;
-        }
-        .modal-body {
-            overflow-y: auto;
-            max-height: 60vh;
-        }
-    }
-
+    /* 3. UPDATED MOBILE RESPONSIVE LOGIC */
     @media (max-width: 991.98px) {
-    .main-content {
-        position: relative;
-    }
-}
-
-
-        /* 3. SHOW sidebar when 'active' class is present */
-        .sidebar.active, #sidebar.active {
-            display: block !important;
+        .modal-fullscreen-sm-down { margin: 0 !important; max-width: 100% !important; }
+        
+        .modal-fullscreen-sm-down .modal-content { 
+            height: 100vh !important; 
+            border-radius: 0; 
+            display: flex !important; 
+            flex-direction: column !important; 
+            border: none;
+        }
+        
+        .modal-header {
+            background: #f8f9fa !important;
+            border-bottom: 1px solid #dee2e6 !important;
+            flex-shrink: 0 !important;
+            padding: 1.25rem !important;
+            z-index: 10;
         }
 
-        /* 4. Content width adjustment */
-        .main-content, #content {
-            margin-left: 0 !important;
-            width: 100% !important;
+        .modal-body { 
+            flex: 1 1 auto !important; 
+            overflow-y: auto !important; 
+            padding: 1.5rem !important; 
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .modal-footer { 
+            flex-shrink: 0 !important; 
+            background: #fff; 
+            border-top: 1px solid #eee; 
             padding: 15px !important;
         }
 
-        /* 5. Header Stack Fix */
-        .d-flex.justify-content-between.align-items-md-center {
-            flex-direction: column !important;
-            align-items: flex-start !important;
+        /* Responsive Column Stacking */
+        .col-4, .col-6, .col-md-6, .col-md-4 {
+            width: 100% !important;
+            flex: 0 0 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 12px;
         }
-}
     }
 </style>
 
