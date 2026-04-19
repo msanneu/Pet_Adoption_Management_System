@@ -77,6 +77,23 @@
             padding: 5px 10px;
             border-radius: 5px;
         }
+
+        /* Ensure the modal is ALWAYS above the sidebar and mobile navbar */
+.modal { 
+    z-index: 2000 !important; 
+}
+.modal-backdrop { 
+    z-index: 1999 !important; 
+}
+
+/* Fix for mobile: Ensures the sidebar doesn't block clicks when it's closed */
+@media (max-width: 992px) {
+    #sidebar:not(.active) {
+        visibility: hidden;
+        pointer-events: none;
+    }
+}
+        
     </style>
 </head>
 <body>
