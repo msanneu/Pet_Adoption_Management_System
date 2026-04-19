@@ -36,6 +36,13 @@ static_dirs = [
 template_dir = next((d for d in template_dirs if os.path.isdir(d)), template_dirs[0])
 static_dir = next((d for d in static_dirs if os.path.isdir(d)), static_dirs[0])
 
+candidate_template_dirs = [
+    os.path.join(CURRENT_DIR, 'templates'),
+    os.path.join(ROOT_DIR, 'templates'),
+    os.path.join(CURRENT_DIR, 'templates', 'public'),
+    os.path.join(ROOT_DIR, 'templates', 'public'),
+]
+
 app = Flask(
     __name__,
     template_folder=template_dir,
@@ -44,9 +51,16 @@ app = Flask(
 
 # Search both api/ and root template folders in serverless deployments.
 app.jinja_loader = ChoiceLoader([
-    FileSystemLoader(d) for d in template_dirs if os.path.isdir(d)
+    FileSystemLoader(d) for d in candidate_template_dirs
 ])
-print("Template search dirs:", [d for d in template_dirs if os.path.isdir(d)])
+print("Candidate template dirs:")
+for d in candidate_template_dirs:
+    print(f"  {d} exists={os.path.isdir(d)}")
+    if os.path.isdir(d):
+        try:
+            print("    files:", os.listdir(d))
+        except Exception as exc:
+            print(f"    list error: {exc}")
 app.secret_key = os.environ.get("SECRET_KEY", "petadopt_secret_2026_key")
 
 
